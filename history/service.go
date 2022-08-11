@@ -1,6 +1,7 @@
 package history
 
 type Service interface {
+	AddHistory(history History) (History, error)
 	FindAll() ([]History, error)
 }
 
@@ -18,4 +19,12 @@ func (s *service) FindAll() ([]History, error) {
 		return histories, err
 	}
 	return histories, nil
+}
+
+func (s *service) AddHistory(history History) (History, error) {
+	newHistory, err := s.histoRepo.AddHistory(history)
+	if err != nil {
+		return newHistory, err
+	}
+	return newHistory, nil
 }

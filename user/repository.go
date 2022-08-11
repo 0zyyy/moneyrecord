@@ -3,6 +3,8 @@ package user
 import "gorm.io/gorm"
 
 type Repository interface {
+	AddUser(user User) (User, error)
+	FindByEmail(email string) (User, error)
 	FindAll() ([]User, error)
 }
 
@@ -17,6 +19,23 @@ func NewRepository(db *gorm.DB) *repository {
 func (r *repository) FindAll() ([]User, error) {
 	var user []User
 	err := r.db.Table("user").Find(&user).Error
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
+func (r *repository) AddUser(user User) (User, error) {
+	err := r.db.Table("user").Create(&user).Error
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
+func (r *repository) FindByEmail(email string) (User, error) {
+	var user User
+	err := r.db.Table("user").Where("email = ?", email).Find(&user).Error
 	if err != nil {
 		return user, err
 	}

@@ -5,7 +5,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/0zyyy/money_record/handler"
 	"github.com/0zyyy/money_record/history"
+	"github.com/0zyyy/money_record/user"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -22,12 +24,16 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	// init repo
-	// userRepo := user.NewRepository(db)
+	userRepo := user.NewRepository(db)
 	historyRepo := history.NewRepository(db)
+
 	//init service
-	// userService := user.NewService(userRepo)
+	userService := user.NewService(userRepo)
+
+	// init handler
+	userHandler := handler.NewUserHandler(userService)
 	//nyoba
-	ihir, err := historyRepo.FindAll()
+	ihir, err := historyRepo.FindById(2)
 	if err != nil {
 		fmt.Println(err)
 	} else {
@@ -39,6 +45,8 @@ func main() {
 		response := Response{Msg: "Hemlo"}
 		c.JSON(http.StatusOK, response)
 	})
-
+	api.GET("/users", userHandler.FindAll)
+	api.POST("/login", userHandler.Login)
+	api.POST("/register", userHandler.Register)
 	router.Run()
 }
