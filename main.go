@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
+	"strconv"	
 	"github.com/0zyyy/money_record/handler"
 	"github.com/0zyyy/money_record/history"
 	"github.com/0zyyy/money_record/user"
@@ -33,12 +33,20 @@ func main() {
 	// init handler
 	userHandler := handler.NewUserHandler(userService)
 	//nyoba
-	ihir, err := historyRepo.FindById(2)
+	ihir, err := historyRepo.Month()
 	if err != nil {
 		fmt.Println(err)
-	} else {
-		fmt.Println(ihir)
 	}
+		fmt.Println(ihir)
+		var total float64
+		for _, value := range ihir {
+			cnv, err := strconv.ParseFloat(value.Total,64)
+			if err != nil {
+				panic(err)
+			}
+			total += cnv
+		}
+		fmt.Println(total)
 	router := gin.Default()
 	api := router.Group("api/v1")
 	api.GET("/hello", func(c *gin.Context) {
