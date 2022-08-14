@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"	
+
 	"github.com/0zyyy/money_record/handler"
 	"github.com/0zyyy/money_record/history"
 	"github.com/0zyyy/money_record/user"
@@ -29,24 +29,17 @@ func main() {
 
 	//init service
 	userService := user.NewService(userRepo)
-
+	historyService := history.NewService(*historyRepo)
 	// init handler
 	userHandler := handler.NewUserHandler(userService)
+	historyHandler := handler.NewHistoryHandler(historyService)
 	//nyoba
-	ihir, err := historyRepo.Month()
+	ihir, err := historyService.Analysis("2022-06-20")
 	if err != nil {
 		fmt.Println(err)
-	}
+	} else {
 		fmt.Println(ihir)
-		var total float64
-		for _, value := range ihir {
-			cnv, err := strconv.ParseFloat(value.Total,64)
-			if err != nil {
-				panic(err)
-			}
-			total += cnv
-		}
-		fmt.Println(total)
+	}
 	router := gin.Default()
 	api := router.Group("api/v1")
 	api.GET("/hello", func(c *gin.Context) {
@@ -56,5 +49,8 @@ func main() {
 	api.GET("/users", userHandler.FindAll)
 	api.POST("/login", userHandler.Login)
 	api.POST("/register", userHandler.Register)
+	api.PUT("/history", historyHandler.Update)  // update
+	api.POST("/history", historyHandler.Create) // create history
+
 	router.Run()
 }
