@@ -9,7 +9,8 @@ import (
 
 type Repository interface {
 	AddHistory(history History) (History, error)
-	Update(history History) (History, error)
+	UpdateHistory(history History) (History, error)
+	FindByIdHistory(ID int) (History, error)
 	Delete(ID int) (bool, error)
 	FindAll() ([]History, error)
 	FindByUserId(ID int) (tx *gorm.DB)
@@ -28,6 +29,7 @@ func NewRepository(db *gorm.DB) *repository {
 	return &repository{db}
 }
 
+// find all
 func (r *repository) FindAll() ([]History, error) {
 	var histories []History
 	err := r.db.Table("history").Find(&histories).Error
@@ -35,6 +37,17 @@ func (r *repository) FindAll() ([]History, error) {
 		return histories, err
 	}
 	return histories, nil
+}
+
+//find by id history
+
+func (r *repository) FindByIdHistory(ID int) (History, error) {
+	var history History
+	err := r.db.Table("history").Where("id_history = ?", ID).Find(&history).Error
+	if err != nil {
+		return history, err
+	}
+	return history, nil
 }
 
 // Add history
@@ -46,9 +59,9 @@ func (r *repository) AddHistory(history History) (History, error) {
 	return history, nil
 }
 
-// update histroy
-func (r *repository) Update(history History) (History, error) {
-	err := r.db.Save(&history).Error
+// UpdateHistory histroy
+func (r *repository) UpdateHistory(history History) (History, error) {
+	err := r.db.Table("history").Where("id_history = ?", 1).Save(&history).Error
 	if err != nil {
 		return history, err
 	}
@@ -117,19 +130,18 @@ func (r *repository) Detail(ID int, params ...string) (History, error) {
 	return history, nil
 }
 
-func (r *repository) Month() ([]History, error) {
+func (r *repository) Month(date string) ([]History, error) {
 	var histories []History
-	err := r.FindByUserId(2).Where("date LIKE ?", "%2022-07%").Order("date DESC").Find(&histories).Error
+	err := r.FindByUserId(2).Where("date LIKE ?", "%"+date+"%").Order("date DESC").Find(&histories).Error
 	if err != nil {
 		return histories, err
 	}
 	return histories, nil
 }
 
-func (r *repository) Week() ([]History, error) {
+func (r *repository) Week(date string) ([]History, error) {
 	var histories []History
-	day1 := "2022-07"
-	err := r.FindByUserId(2).Where("date >= ?", "%"+day1+"%").Order("date DESC").Find(&histories).Error
+	err := r.FindByUserId(2).Where("date >= ?", "%"+date+"%").Order("date DESC").Find(&histories).Error
 	if err != nil {
 		return histories, err
 	}

@@ -8,5 +8,5 @@ type History struct {
 	Total     string
 	Details   string
 	CreatedAt string
-	UpdateAt  string
+	UpdatedAt string
 }
