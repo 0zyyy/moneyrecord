@@ -50,6 +50,19 @@ func (h *userHandler) Register(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, response)
 		return
 	}
+	// cek apakah ada user yg sama
+	already, err := h.userService.FindEmail(input)
+	if err != nil {
+		response := helper.ErrorResponse(err)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+	if already {
+		response := helper.APIResponse("User already exist", http.StatusUnprocessableEntity, "failed", user.User{})
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+	// register
 	users, err := h.userService.RegisterUser(input)
 	if err != nil {
 		response := helper.ErrorResponse(err)

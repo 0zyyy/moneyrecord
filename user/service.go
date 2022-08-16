@@ -11,6 +11,8 @@ type Service interface {
 	Login(input LoginInput) (User, error)
 	RegisterUser(input RegisterUserInput) (User, error)
 	FindAll() ([]User, error)
+	FindEmail(input RegisterUserInput) (bool, error)
+	GetUserById(userId int) (User, error)
 }
 
 type service struct {
@@ -29,6 +31,16 @@ func (s *service) FindAll() ([]User, error) {
 	return users, nil
 }
 
+func (s *service) FindEmail(input RegisterUserInput) (bool, error) {
+	alr, err := s.UserRepository.FindByEmail(input.Email)
+	if err != nil {
+		return true, err
+	}
+	if alr.Email != "" {
+		return true, nil
+	}
+	return false, nil
+}
 func (s *service) Login(input LoginInput) (User, error) {
 	user, err := s.UserRepository.FindByEmail(input.Email)
 	if err != nil {
@@ -60,4 +72,12 @@ func (s *service) RegisterUser(input RegisterUserInput) (User, error) {
 		return newUser, err
 	}
 	return newUser, nil
+}
+
+func (s *service) GetUserById(userId int) (User, error) {
+	user, err := s.UserRepository.FindById(userId)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
 }

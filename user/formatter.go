@@ -1,7 +1,6 @@
 package user
 
 type UserResponse struct {
-	IDUser    int    `json:"id_user"`
 	Name      string `json:"name"`
 	Email     string `json:"email"`
 	CreatedAt string `json:"created_at"`
@@ -10,7 +9,6 @@ type UserResponse struct {
 
 func ResponseFormatterUser(user User) UserResponse {
 	response := UserResponse{
-		IDUser:    user.IDUser,
 		Name:      user.Name,
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
