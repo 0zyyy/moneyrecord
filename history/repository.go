@@ -3,6 +3,7 @@ package history
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"gorm.io/gorm"
 )
@@ -17,8 +18,8 @@ type Repository interface {
 	HistorySearch(ID int, params ...string) ([]ResponseHistory, error)
 	IncomeSearch(ID int, params ...string) ([]ResponseHistory, error)
 	Detail(ID int, params ...string) (History, error)
-	Month() ([]History, error)
-	Week() ([]History, error)
+	Month() ([]ResponseHistory, error)
+	Week() ([]ResponseHistory, error)
 }
 
 type repository struct {
@@ -86,14 +87,15 @@ func (r *repository) FindByUserId(ID int) (tx *gorm.DB) {
 
 func (r *repository) HistorySearch(ID int, params ...string) ([]ResponseHistory, error) {
 	var histories []ResponseHistory
-	fmt.Println(params)
 	// params ada 1 otomatis ada date-nya berarti dia ngesearch
-	if len(params) == 1 {
+	if params[0] != "" {
+		log.Println("rintting by date")
 		err := r.FindByUserId(ID).Where("date = ?", params[0]).Order("date DESC").Find(&histories).Error
 		if err != nil {
 			return histories, err
 		}
 	} else {
+		log.Println("Printing all")
 		err := r.FindByUserId(ID).Order("date DESC").Find(&histories).Error
 		if err != nil {
 			return histories, err
@@ -106,7 +108,7 @@ func (r *repository) IncomeSearch(ID int, params ...string) ([]ResponseHistory, 
 	var histories []ResponseHistory
 	fmt.Println(params)
 	// params ada 2 otomatis ada date-nya berarti dia ngesearch
-	if len(params) == 2 {
+	if params[1] != "" {
 		err := r.FindByUserId(ID).Where("type = ?", params[0]).Where("date = ?", params[1]).Order("date DESC").Find(&histories).Error
 		if err != nil {
 			return histories, err
@@ -130,8 +132,8 @@ func (r *repository) Detail(ID int, params ...string) (History, error) {
 	return history, nil
 }
 
-func (r *repository) Month(date string) ([]History, error) {
-	var histories []History
+func (r *repository) Month(date string) ([]ResponseHistory, error) {
+	var histories []ResponseHistory
 	err := r.FindByUserId(2).Where("date LIKE ?", "%"+date+"%").Order("date DESC").Find(&histories).Error
 	if err != nil {
 		return histories, err
@@ -139,8 +141,8 @@ func (r *repository) Month(date string) ([]History, error) {
 	return histories, nil
 }
 
-func (r *repository) Week(date string) ([]History, error) {
-	var histories []History
+func (r *repository) Week(date string) ([]ResponseHistory, error) {
+	var histories []ResponseHistory
 	err := r.FindByUserId(2).Where("date >= ?", "%"+date+"%").Order("date DESC").Find(&histories).Error
 	if err != nil {
 		return histories, err

@@ -16,17 +16,6 @@ func NewHistoryHandler(historyService history.Service) *HistoryHandler {
 	return &HistoryHandler{historyService}
 }
 
-func (h *HistoryHandler) History(ctx *gin.Context) {
-	var input history.Search
-
-	err := ctx.ShouldBindJSON(&input)
-	if err != nil {
-		response := helper.ErrorResponse(err)
-		ctx.JSON(http.StatusMethodNotAllowed, response)
-		return
-	}
-}
-
 func (h *HistoryHandler) Create(ctx *gin.Context) {
 	var input history.NewHistoryInput
 
@@ -92,18 +81,50 @@ func (h *HistoryHandler) Delete(ctx *gin.Context) {
 func (h *HistoryHandler) SearchHistory(ctx *gin.Context) {
 	var input history.Search
 
-	err := ctx.ShouldBindJSON(input)
+	err := ctx.ShouldBindJSON(&input)
 	if err != nil {
-		response := helper.ErrorResponse(err)
-		ctx.JSON(http.StatusUnprocessableEntity, response)
+		ctx.JSON(http.StatusBadGateway, err)
 		return
 	}
 	data, err := h.historyService.SearchHistory(input.UserID, input.Date)
 	if err != nil {
-		response := helper.ErrorResponse(err)
-		ctx.JSON(http.StatusUnprocessableEntity, response)
+		ctx.JSON(http.StatusUnprocessableEntity, err)
 		return
 	}
 	response := helper.APIResponse("Successfully getting histories", http.StatusOK, "success", data)
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (h *HistoryHandler) SearchIncome(ctx *gin.Context) {
+	var input history.Income
+
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"err": err.Error()})
+		return
+	}
+
+	data, err := h.historyService.SearchIncome(input.HistorySearch.UserID, input.Type, input.HistorySearch.Date)
+	if err != nil {
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"err": err.Error()})
+		return
+	}
+	response := helper.APIResponse("Successfully getting incomes", http.StatusOK, "success", data)
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (h *HistoryHandler) Analysis(ctx *gin.Context) {
+	var input history.Search
+
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{"err": err.Error()})
+		return
+	}
+
+	data, err := h.historyService.Analysis(input.Date)
+	if err != nil {
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"err": err.Error()})
+		return
+	}
+	response := helper.APIResponse("Analysis complete", http.StatusOK, "success", data)
 	ctx.JSON(http.StatusOK, response)
 }

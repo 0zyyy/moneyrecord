@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/0zyyy/money_record/helper"
 	"github.com/hyperjiang/php"
 )
 
@@ -70,35 +71,38 @@ func (s *service) SearchIncome(ID int, tipe string, date string) ([]ResponseHist
 
 func (s *service) Analysis(date string) (ResponseAnalysis, error) {
 	var monthIncome, monthOutcome float64
-	resultMonth, err := s.histoRepo.Month(date)
-	if err != nil {
-		return ResponseAnalysis{}, err
-	}
-	resultWeek, err := s.histoRepo.Week(date)
-	if err != nil {
-		return ResponseAnalysis{}, err
-	}
-	week := []string{} // buat date week
-	weekly := []float64{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
 	today, err := php.DateCreate(date)
 	if err != nil {
 		return ResponseAnalysis{}, err
 	}
+	thisMonth := php.DateFormat(today, "Y-m")
+	resultMonth, err := s.histoRepo.Month(thisMonth)
+	if err != nil {
+		return ResponseAnalysis{}, err
+	}
+	week := []string{} // buat date week
+	weekly := []float64{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
+
 	// thisMonth := php.DateFormat(today, "Y-m")
 	// bikin day
 
 	// bikin week susah bhangsat
 	week = append(week, php.DateFormat(today, "Y-m-d"))
-	for i := 0; i <= 6; i++ {
+	for i := 1; i <= 6; i++ {
 		dateInterval, err := php.DateIntervalCreateFromDateString("1 day") // make date interval 1 day sebelumnya
 		if err != nil {
 			return ResponseAnalysis{}, err
 		}
-		daySebelum, err := php.DateCreate(week[i]) // init daySebelum
+		daySebelum, err := php.DateCreate(week[i-1]) // init daySebelum
 		if err != nil {
 			return ResponseAnalysis{}, err
 		}
 		week = append(week, php.DateFormat(php.DateSub(daySebelum, dateInterval), "Y-m-d")) // append date sebelumnya, 7 hari kebelakang
+	}
+	week = helper.Reverse(week)
+	resultWeek, err := s.histoRepo.Week(week[0])
+	if err != nil {
+		return ResponseAnalysis{}, err
 	}
 	for i := 0; i <= len(resultWeek)-1; i++ {
 		if resultWeek[i].Type == "Pengeluaran" {
@@ -131,7 +135,7 @@ func (s *service) Analysis(date string) (ResponseAnalysis, error) {
 	return ResponseAnalysis{
 		Today:     weekly[6],
 		Yesterday: weekly[5],
-		Week:      weekly,
+		Week:      week,
 		Month: MonthResult{
 			Income:  monthIncome,
 			Outcome: monthOutcome,

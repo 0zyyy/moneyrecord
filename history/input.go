@@ -12,8 +12,8 @@ type NewHistoryInput struct {
 }
 
 type Search struct {
-	UserID int
-	Date   string
+	UserID int    `json:"user_id"`
+	Date   string `json:"date"`
 }
 
 type Income struct {
