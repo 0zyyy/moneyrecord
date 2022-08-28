@@ -2,23 +2,23 @@ package history
 
 type NewHistoryInput struct {
 	IDHistory int    `json:"id_history"`
-	IDUser    int    `json:"id_user"`
-	Type      string `json:"type"`
-	Date      string `json:"date"`
-	Total     string `json:"total"`
+	IDUser    int    `json:"id_user" binding:"required"`
+	Type      string `json:"type" binding:"required"`
+	Date      string `json:"date" binding:"required"`
+	Total     string `json:"total" binding:"required"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
-	Details   string `json:"details"`
+	Details   string `json:"details" binding:"required"`
 }
 
 type Search struct {
-	UserID int    `json:"user_id"`
+	IDUser int    `json:"id_user" binding:"required"`
 	Date   string `json:"date"`
 }
 
 type Income struct {
-	HistorySearch Search `json:"search"`
-	Type          string `json:"type"`
+	HistorySearch Search `json:"search" binding:"required"`
+	Type          string `json:"type" binding:"required"`
 }
 
 type DeleteHistory struct {

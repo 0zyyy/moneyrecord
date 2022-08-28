@@ -35,20 +35,20 @@ func main() {
 	historyService := history.NewService(*historyRepo)
 	authService := auth.NewService()
 	// init handler
-	userHandler := handler.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(userService, authService)
 	historyHandler := handler.NewHistoryHandler(historyService)
 
 	//api endpoint
 	router := gin.Default()
 	api := router.Group("api/v1")
 	api.GET("/users", userHandler.FindAll)
-	api.POST("/login", userHandler.Login)                                                               // login user
-	api.POST("/register", userHandler.Register)                                                         // register user
-	api.PUT("/history", authMiddleware(authService, userService), historyHandler.Update)                // update
-	api.POST("/history", authMiddleware(authService, userService), historyHandler.Create)               // create history
-	api.POST("/search/history", authMiddleware(authService, userService), historyHandler.SearchHistory) // search History
-	api.POST("/search/income", authMiddleware(authService, userService), historyHandler.SearchIncome)   // search income
-	api.POST("/anal", authMiddleware(authService, userService), historyHandler.Analysis)                // anal
+	api.POST("/login", userHandler.Login)                                                             // login user
+	api.POST("/register", userHandler.Register)                                                       // register user
+	api.PUT("/history", authMiddleware(authService, userService), historyHandler.Update)              // update
+	api.POST("/history", authMiddleware(authService, userService), historyHandler.Create)             // create history
+	api.POST("/search/history", historyHandler.SearchHistory)                                         // search History
+	api.POST("/search/income", authMiddleware(authService, userService), historyHandler.SearchIncome) // search income
+	api.POST("/anal", authMiddleware(authService, userService), historyHandler.Analysis)              // anal
 	router.Run()
 }
 
@@ -79,7 +79,7 @@ func authMiddleware(authService auth.Service, userService user.Service) gin.Hand
 			return
 		}
 
-		userId := int(claim["user_id"].(float64))
+		userId := int(claim["id_user"].(float64))
 		user, err := userService.GetUserById(userId)
 		if err != nil {
 			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)

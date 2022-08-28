@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/0zyyy/money_record/auth"
 	"github.com/0zyyy/money_record/helper"
 	"github.com/0zyyy/money_record/user"
 	"github.com/gin-gonic/gin"
@@ -10,10 +11,11 @@ import (
 
 type userHandler struct {
 	userService user.Service
+	authService auth.Service
 }
 
-func NewUserHandler(userService user.Service) *userHandler {
-	return &userHandler{userService}
+func NewUserHandler(userService user.Service, authService auth.Service) *userHandler {
+	return &userHandler{userService, authService}
 }
 
 func (h *userHandler) FindAll(c *gin.Context) {
@@ -22,24 +24,32 @@ func (h *userHandler) FindAll(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": user.ResponseFormatterUsers(users)})
+	c.JSON(http.StatusOK, gin.H{"data": user.ResponseFormatterUsers(users, "1111")})
 }
 
 func (h *userHandler) Login(c *gin.Context) {
 	var input user.LoginInput
 	err := c.ShouldBindJSON(&input)
 	if err != nil {
-		response := helper.ErrorResponse(err)
+		response := helper.APIResponse("Failed to login", http.StatusUnprocessableEntity, "failed", err.Error())
 		c.JSON(http.StatusUnprocessableEntity, response)
 		return
 	}
+	// token generate dulu
 	users, err := h.userService.Login(input)
 	if err != nil {
-		response := helper.ErrorResponse(err)
+		response := helper.APIResponse("Failed to login", http.StatusUnprocessableEntity, "failed", err.Error())
 		c.JSON(http.StatusUnprocessableEntity, response)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": "nerhasil login", "user": user.ResponseFormatterUser(users)})
+	token, err := h.authService.GenerateToken(users.IDUser)
+	if err != nil {
+		response := helper.APIResponse("Failed to login", http.StatusUnprocessableEntity, "failed", err.Error())
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+	response := helper.APIResponse("Berhasil login", http.StatusOK, "success", user.ResponseFormatterUser(users, token))
+	c.JSON(http.StatusOK, response)
 }
 
 func (h *userHandler) Register(c *gin.Context) {
@@ -69,6 +79,12 @@ func (h *userHandler) Register(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, response)
 		return
 	}
-	response := helper.APIResponse("Successfully created user", http.StatusOK, "success", user.ResponseFormatterUser(users))
+	token, err := h.authService.GenerateToken(users.IDUser)
+	if err != nil {
+		response := helper.ErrorResponse(err)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+	response := helper.APIResponse("Successfully created user", http.StatusOK, "success", user.ResponseFormatterUser(users, token))
 	c.JSON(http.StatusOK, response)
 }

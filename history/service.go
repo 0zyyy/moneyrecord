@@ -1,6 +1,7 @@
 package history
 
 import (
+	"log"
 	"strconv"
 	"time"
 
@@ -13,7 +14,7 @@ type Service interface {
 	FindAll() ([]History, error)
 	SearchHistory(ID int, date string) ([]ResponseHistory, error)
 	SearchIncome(ID int, tipe string, date string) ([]ResponseHistory, error)
-	Analysis(date string) (ResponseAnalysis, error)
+	Analysis(idUser int, date string) (ResponseAnalysis, error)
 	Update(input NewHistoryInput) (History, error)
 	Delete(IDHistory int) (bool, error)
 }
@@ -53,6 +54,7 @@ func (s *service) Create(input NewHistoryInput) (History, error) {
 
 func (s *service) SearchHistory(ID int, date string) ([]ResponseHistory, error) {
 	// find by id dulu
+	log.Println(date)
 	history, err := s.histoRepo.HistorySearch(ID, date)
 	if err != nil {
 		return history, err
@@ -69,14 +71,14 @@ func (s *service) SearchIncome(ID int, tipe string, date string) ([]ResponseHist
 	return history, nil
 }
 
-func (s *service) Analysis(date string) (ResponseAnalysis, error) {
+func (s *service) Analysis(idUser int, date string) (ResponseAnalysis, error) {
 	var monthIncome, monthOutcome float64
 	today, err := php.DateCreate(date)
 	if err != nil {
 		return ResponseAnalysis{}, err
 	}
 	thisMonth := php.DateFormat(today, "Y-m")
-	resultMonth, err := s.histoRepo.Month(thisMonth)
+	resultMonth, err := s.histoRepo.Month(idUser, thisMonth)
 	if err != nil {
 		return ResponseAnalysis{}, err
 	}
@@ -100,7 +102,7 @@ func (s *service) Analysis(date string) (ResponseAnalysis, error) {
 		week = append(week, php.DateFormat(php.DateSub(daySebelum, dateInterval), "Y-m-d")) // append date sebelumnya, 7 hari kebelakang
 	}
 	week = helper.Reverse(week)
-	resultWeek, err := s.histoRepo.Week(week[0])
+	resultWeek, err := s.histoRepo.Week(idUser, week[0])
 	if err != nil {
 		return ResponseAnalysis{}, err
 	}
@@ -135,7 +137,7 @@ func (s *service) Analysis(date string) (ResponseAnalysis, error) {
 	return ResponseAnalysis{
 		Today:     weekly[6],
 		Yesterday: weekly[5],
-		Week:      week,
+		Week:      weekly,
 		Month: MonthResult{
 			Income:  monthIncome,
 			Outcome: monthOutcome,

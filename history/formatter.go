@@ -11,7 +11,7 @@ type ResponseHistory struct {
 type ResponseAnalysis struct {
 	Today     float64     `json:"today"`
 	Yesterday float64     `json:"yesterday"`
-	Week      []string    `json:"week"`
+	Week      []float64   `json:"week"`
 	Month     MonthResult `json:"month"`
 }
 

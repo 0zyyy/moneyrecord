@@ -26,7 +26,7 @@ SET time_zone = "+00:00";
 --
 -- Table structure for table `history`
 --
-
+USE money_record;
 CREATE TABLE `history` (
   `id_history` int(11) NOT NULL,
   `id_user` int(11) NOT NULL,

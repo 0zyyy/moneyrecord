@@ -132,18 +132,18 @@ func (r *repository) Detail(ID int, params ...string) (History, error) {
 	return history, nil
 }
 
-func (r *repository) Month(date string) ([]ResponseHistory, error) {
+func (r *repository) Month(idUser int, date string) ([]ResponseHistory, error) {
 	var histories []ResponseHistory
-	err := r.FindByUserId(2).Where("date LIKE ?", "%"+date+"%").Order("date DESC").Find(&histories).Error
+	err := r.FindByUserId(idUser).Where("date LIKE ?", "%"+date+"%").Order("date DESC").Find(&histories).Error
 	if err != nil {
 		return histories, err
 	}
 	return histories, nil
 }
 
-func (r *repository) Week(date string) ([]ResponseHistory, error) {
+func (r *repository) Week(idUser int, date string) ([]ResponseHistory, error) {
 	var histories []ResponseHistory
-	err := r.FindByUserId(2).Where("date >= ?", "%"+date+"%").Order("date DESC").Find(&histories).Error
+	err := r.FindByUserId(idUser).Where("date >= ?", "%"+date+"%").Order("date DESC").Find(&histories).Error
 	if err != nil {
 		return histories, err
 	}
